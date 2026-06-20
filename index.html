@@ -3,200 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>พิธีบายศรีสู่ขวัญ - ช่อแก้ว</title>
-    <link href="https://fonts.googleapis.com/css2?family=Charm:wght@400;700&family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
-    
+    <title>ยินดีต้อนรับสู่ช่อแก้ว</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Charm:wght@400;700&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #2c3e50;
-            --text-color: #ecf0f1;
-            --glow-color: transparent;
+            --light-color: rgba(255, 215, 120, 0);
+            --bg-color: #050507;
         }
 
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        body, html {
+            width: 100%;
+            height: 100dvh;
             background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Kanit', sans-serif;
-            height: 100vh;
-            width: 100vw;
+            color: #eee;
+            font-family: 'Prompt', sans-serif;
             overflow: hidden;
+            transition: background-color 3s ease;
+        }
+
+        /* เอฟเฟกต์แสงไฟ */
+        #lighting {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 60%, var(--light-color) 0%, rgba(5,5,7,1) 80%);
+            transition: background 4s ease;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* คอนเทนเนอร์หลัก */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: background-color 3s ease, box-shadow 3s ease;
-            box-shadow: inset 0 0 150px var(--glow-color);
+            padding: 20px;
+            cursor: pointer;
         }
 
-        /* หน้าจอเริ่มต้น (ต้องมีเพื่อให้เบราว์เซอร์อนุญาตให้เล่นเพลง) */
+        /* กล่องข้อความ */
+        #text-box {
+            max-width: 600px;
+            width: 100%;
+            min-height: 150px;
+            text-align: center;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            font-weight: 300;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        #text-box.chant {
+            font-family: 'Charm', cursive;
+            font-size: 1.6rem;
+            color: #fcebbb;
+        }
+
+        /* ปุ่มเริ่มเกม (เพื่อปลดล็อกเสียง) */
         #start-screen {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #111;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-            cursor: pointer;
-            flex-direction: column;
+            z-index: 50;
             transition: opacity 1s ease;
         }
-        
-        #start-screen p {
+
+        .btn {
+            padding: 15px 40px;
+            border: 1px solid #555;
+            background: transparent;
+            color: #fff;
+            font-family: 'Prompt', sans-serif;
             font-size: 1.2rem;
-            animation: pulse 2s infinite;
-            color: #bdc3c7;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
+        .btn:hover {
+            background: #fff;
+            color: #000;
         }
 
-        /* คอนเทนเนอร์แสดงข้อความ */
-        #story-container {
-            width: 90%;
-            max-width: 400px;
-            height: 60vh;
+        /* เทียนสมจริง (CSS Render) */
+        #candle-container {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 3s ease;
+            z-index: 5;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            text-align: center;
-            z-index: 10;
+        }
+
+        .flame {
+            width: 18px;
+            height: 35px;
+            background: radial-gradient(ellipse at bottom, #ffffff 10%, #ffe100 40%, #ff6a00 80%, transparent);
+            border-radius: 50% 50% 20% 20%;
+            animation: flicker 0.1s infinite alternate;
+            box-shadow: 0 0 30px #ffaa00, 0 0 60px #ff6a00;
+            transform-origin: bottom center;
+        }
+
+        .wick {
+            width: 2px;
+            height: 6px;
+            background: #222;
+            border-radius: 2px;
+            margin-top: -2px;
+        }
+
+        .wax {
+            width: 35px;
+            height: 100px;
+            background: linear-gradient(to right, #d3a45c, #fcedc9 30%, #d3a45c);
+            border-radius: 4px 4px 8px 8px;
+            box-shadow: inset 0 -10px 20px rgba(0,0,0,0.5);
             position: relative;
         }
 
-        .story-text {
-            font-size: 1.1rem;
-            line-height: 1.8;
+        .wax::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+        }
+
+        @keyframes flicker {
+            0% { transform: scale(1) rotate(-1deg); box-shadow: 0 0 25px #ffaa00, 0 0 50px #ff6a00; }
+            50% { transform: scale(1.05) rotate(1deg); box-shadow: 0 0 35px #ffaa00, 0 0 70px #ff6a00; }
+            100% { transform: scale(0.95) rotate(0deg); box-shadow: 0 0 30px #ffaa00, 0 0 60px #ff6a00; }
+        }
+
+        /* Canvas สายสิญจน์ */
+        #saisin-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none; /* ให้คลิกทะลุได้ แต่ให้ js จับพิกัดเมาส์แทน */
             opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 1.5s ease, transform 1.5s ease;
-            text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
-            margin-bottom: 20px;
+            transition: opacity 2s ease;
         }
 
-        .story-text.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .font-chant {
-            font-family: 'Charm', cursive;
-            font-size: 1.5rem;
-            color: #f1c40f;
-            text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
-        }
-
-        /* คำแนะนำให้กดหน้าจอ */
-        #tap-hint {
+        /* คำแนะนำคลิก */
+        .click-hint {
             position: absolute;
             bottom: 30px;
             font-size: 0.8rem;
             color: rgba(255,255,255,0.3);
-            letter-spacing: 2px;
-            z-index: 10;
+            animation: pulse 2s infinite;
         }
 
-        /* Canvas สำหรับสายสิญจน์ */
-        #canvas-saisin {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 5;
-            opacity: 0;
-            transition: opacity 3s ease;
+        @keyframes pulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.8; }
         }
-
-        /* ---------------- CSS เทียนสมจริง ---------------- */
-        #candle-wrapper {
-            position: absolute;
-            bottom: -150px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 150px;
-            opacity: 0;
-            transition: bottom 3s ease, opacity 3s ease;
-            z-index: 1;
-        }
-
-        #candle-wrapper.show {
-            bottom: 50px;
-            opacity: 1;
-        }
-
-        .candle-body {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to right, #eaddcd 0%, #fffbf2 30%, #fffbf2 70%, #d8c8b5 100%);
-            border-radius: 5px 5px 10px 10px;
-            position: relative;
-            box-shadow: inset 0 -10px 20px rgba(0,0,0,0.5);
-        }
-
-        /* น้ำตาเทียน */
-        .wax {
-            position: absolute;
-            top: 0;
-            background: #fffbf2;
-            border-radius: 50px;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
-        }
-        .wax-1 { width: 12px; height: 35px; left: 5px; }
-        .wax-2 { width: 10px; height: 25px; right: 10px; top: 5px; }
-
-        .wick {
-            width: 4px;
-            height: 15px;
-            background: #2c3e50;
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 2px;
-        }
-
-        .flame {
-            width: 20px;
-            height: 40px;
-            background: #ffeb3b;
-            border-radius: 50% 50% 20% 20%;
-            position: absolute;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            box-shadow: 
-                0 0 20px rgba(255, 235, 59, 0.8),
-                0 0 50px rgba(255, 152, 0, 0.8),
-                0 0 80px rgba(244, 67, 54, 0.6);
-            animation: flicker 0.1s infinite alternate;
-        }
-
-        .flame-inner {
-            width: 10px;
-            height: 20px;
-            background: #fff;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        @keyframes flicker {
-            0% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 1; }
-            100% { transform: translateX(-50%) scale(1.05) rotate(2deg); opacity: 0.9; }
-        }
-
     </style>
 </head>
 <body>
@@ -205,168 +202,278 @@
         <source src="bgm.mp3" type="audio/mpeg">
     </audio>
 
-    <div id="start-screen" onclick="startGame()">
-        <p>แตะหน้าจอเพื่อเข้าสู่ลานพิธี</p>
+    <div id="start-screen">
+        <button class="btn" id="start-btn">เข้าสู่พิธี</button>
     </div>
 
-    <canvas id="canvas-saisin"></canvas>
+    <div id="lighting"></div>
+    <canvas id="saisin-canvas"></canvas>
 
-    <div id="candle-wrapper">
-        <div class="candle-body">
-            <div class="wax wax-1"></div>
-            <div class="wax wax-2"></div>
-            <div class="wick"></div>
-            <div class="flame"><div class="flame-inner"></div></div>
-        </div>
+    <div id="candle-container">
+        <div class="flame"></div>
+        <div class="wick"></div>
+        <div class="wax"></div>
     </div>
 
-    <div id="story-container">
-        <div id="text-display"></div>
+    <div id="game-container">
+        <div id="text-box"></div>
+        <div class="click-hint">แตะหน้าจอเพื่อไปต่อ</div>
     </div>
-
-    <div id="tap-hint">แตะหน้าจอเพื่ออ่านต่อ</div>
 
     <script>
-        const storyLines = [
-            { text: "หลังจากการเดินทางอันยาวนานตลอดทั้งวัน ในที่สุดรถบัสของมหาวิทยาลัยสิบศิลป์สิริศาสตร์และมหาวิทยาลัยเบงจันทร์ก็เคลื่อนตัวเข้าสู่มหาวิทยาลัยช่อแก้ว", class: "" },
-            { text: "กระทั่งยามเย็นเมื่อทุกคนจัดการธุระส่วนตัวเรียบร้อยแล้วจึงถูกเชิญมาที่ลานหน้าคณะศิลปกรรมศาสตร์", class: "" },
-            { text: "แสงแดดยามเย็นกำลังอ่อนตัวลง...", trigger: "sunset" },
-            { text: "ขณะที่ลมต้นฤดูฝนพัดเอากลิ่นดินและความเย็นสบายเข้ามาปะทะใบหน้า", class: "" },
-            { text: "ผ้าขาวถูกขึงประดับเหนือศีรษะ สายสิญจน์ทอดยาวล้อมพื้นที่พิธีเอาไว้ ขณะที่บายศรีต้นใหญ่ตั้งเด่นอยู่กลางลานรอรับผู้มาเยือน", class: "" },
-            { text: "นักศึกษาช่อแก้วทยอยยืนเรียงแถวอยู่ทั้งสองข้างทาง เสียงพูดคุยและรอยยิ้มดังขึ้นเป็นระยะเมื่อได้พบหน้ากันเป็นครั้งแรก", class: "" },
-            { text: "บางคนเคยพูดคุยกันผ่านหน้าจอ... บางคนเคยเห็นเพียงภาพถ่าย... และบางคนก็ยังไม่เคยรู้จักกันเลย", class: "" },
-            { text: "แต่ค่ำคืนนี้คือจุดเริ่มต้นของการทำความรู้จักกัน", class: "" },
-            { text: "\"สวัสดีทุกคนค่ะ\"", class: "" },
-            { text: "\"ในนามของมหาวิทยาลัยช่อแก้ว พวกเรายินดีต้อนรับเพื่อน ๆ จากมหาวิทยาลัยสิบศิลป์สิริศาสตร์และมหาวิทยาลัยเบงจันทร์สู่จังหวัดขอนแก่น\"", class: "" },
-            { text: "\"ตามประเพณีของชาวอีสาน การเดินทางมาถึงสถานที่ใหม่หรือการเริ่มต้นสิ่งใหม่ มักมีพิธีบายศรีสู่ขวัญเพื่อเป็นการต้อนรับและอวยพร\"", class: "" },
-            { text: "กลางวงล้อมมีบายศรีประดับด้วยดอกไม้สีขาวและเหลืองอย่างสวยงาม...", trigger: "darkness" },
-            { text: "เทียนเล่มเล็กถูกจุดขึ้นทีละเล่ม จนเกิดแสงสว่างอ่อนโยนท่ามกลางความมืดมิด", trigger: "candle" },
-            { text: "ผู้เฒ่าผู้แก่ที่ได้รับเชิญจากชุมชนค่อย ๆ ก้าวเข้ามานั่งหน้าพานบายศรี ฝ่ามือเหี่ยวย่นยกขึ้นพนมเหนืออก ก่อนจะหลับตาลงช้า ๆ", class: "" },
-            { text: "เสียงแคนที่บรรเลงอยู่ด้านข้างค่อย ๆ เบาลง เหลือเพียงเสียงลมยามเย็นพัดผ่านยอดไม้", class: "" },
-            { text: "ศรีเอ๋ย ศรีมา...", class: "font-chant" },
-            { text: "ศรีของลูกหลานจากแดนไกล<br>ศรีของผู้เดินทางข้ามภูเขา ข้ามแม่น้ำ<br>ให้คืนมาอยู่เนื้ออยู่โต อยู่กายอยู่ใจ", class: "font-chant" },
-            { text: "มื้อนี้เป็นมื้อดี<br>มื้อแห่งการพบพ้อ<br>มื้อแห่งการผูกสัมพันธ์", class: "font-chant" },
-            { text: "แสงเทียนส่องไหวไปตามแรงลม รอบตัวเงียบสงบเสียจนได้ยินเพียงเสียงบทเอิ้นขวัญ", class: "" },
-            { text: "มาเด้อขวัญเอ๋ย มาเด้อ<br>ขวัญที่อยู่ภูไกลให้คืนมา<br>ขวัญที่อยู่ฟ้าไกลให้คืนมา", class: "font-chant" },
-            { text: "ให้มาอยู่กับเจ้าของ ให้อยู่คู่กายคู่ใจ<br>ให้มีแต่ความสุข ความเจริญ", class: "font-chant" },
-            { text: "เมื่อสิ้นคำเอิ้นขวัญ ผู้เฒ่าจึงหยิบสายสิญจน์ขึ้นมา...", trigger: "saisin" },
-            { text: "\"นับแต่มื้อนี้ไป ขอให้ลูกหลานทั้งสามสถาบันฮักแพงกันคือพี่น้อง\"", class: "font-chant" },
-            { text: "\"ยินดีต้อนรับสู่ช่อแก้วเด้อ\"", class: "font-chant" },
-            { text: "เหล่ารุ่นพี่และตัวแทนจากมหาวิทยาลัยช่อแก้วจึงหยิบสายสิญจน์ขึ้นมาผูกข้อมือให้แก่ผู้มาเยือนทีละคน พร้อมคำอวยพร", class: "" },
-            { text: "เสียงหัวเราะดังขึ้น บทสนทนาแรกเริ่มเกิดขึ้น และความเกร็งจากการพบกันครั้งแรกก็ค่อย ๆ ถูกแทนที่ด้วยรอยยิ้ม", class: "" },
-            { text: "\"จากนี้ไป พวกเราอาจไม่ได้เป็นเพียงนักศึกษาจากสามมหาวิทยาลัย... แต่จะเป็นเพื่อนร่วมค่ายเดียวกัน\"", class: "" },
-            { text: "ภายใต้ท้องฟ้ายามค่ำของเมืองขอนแก่น ค่ำคืนแรกของการพบกันจึงเริ่มต้นขึ้นอย่างอบอุ่น...", class: "" },
-            { text: "และเต็มไปด้วยความหมาย.", class: "" }
+        const storyData = [
+            { text: "หลังจากการเดินทางอันยาวนานตลอดทั้งวัน ในที่สุดรถบัสของมหาวิทยาลัยสิบศิลป์สิริศาสตร์และมหาวิทยาลัยเบงจันทร์ก็เคลื่อนตัวเข้าสู่มหาวิทยาลัยช่อแก้ว...", effect: "normal" },
+            { text: "กระทั่งยามเย็นเมื่อทุกคนจัดการธุระส่วนตัวเรียบร้อยแล้ว จึงถูกเชิญมาที่ลานหน้าคณะศิลปกรรมศาสตร์", effect: "normal" },
+            { text: "แสงแดดยามเย็นกำลังอ่อนตัวลง ขณะที่ลมต้นฤดูฝนพัดเอากลิ่นดินและความเย็นสบายเข้ามาปะทะใบหน้า", effect: "dim" },
+            { text: "ภายในลานหน้าคณะถูกจัดเตรียมไว้ตั้งแต่ช่วงบ่าย ผ้าขาวถูกขึงประดับเหนือศีรษะ สายสิญจน์ทอดยาวล้อมพื้นที่พิธีเอาไว้", effect: "dim" },
+            { text: "บายศรีต้นใหญ่ตั้งเด่นอยู่กลางลานรอรับผู้มาเยือน นักศึกษาช่อแก้วทยอยยืนเรียงแถวอยู่ทั้งสองข้างทาง", effect: "dim" },
+            { text: "บางคนเคยพูดคุยกันผ่านหน้าจอ\nบางคนเคยเห็นเพียงภาพถ่าย\nและบางคนก็ยังไม่เคยรู้จักกันเลย", effect: "dim" },
+            { text: "แต่ค่ำคืนนี้... คือจุดเริ่มต้นของการทำความรู้จักกัน", effect: "dim" },
+            { text: "เมื่อสมาชิกจากทั้งสามมหาวิทยาลัยมารวมตัวกันครบถ้วน ตัวแทนสโมสรนักศึกษาช่อแก้วจึงก้าวออกมากล่าวต้อนรับ", effect: "dim" },
+            { text: '"สวัสดีทุกคนค่ะ"', type: "chant" },
+            { text: '"ในนามของมหาวิทยาลัยช่อแก้ว พวกเรายินดีต้อนรับเพื่อน ๆ จากสิบศิลป์สิริศาสตร์และเบงจันทร์ สู่จังหวัดขอนแก่น"', type: "chant" },
+            { text: '"หวังว่าตลอดระยะเวลาที่จะอยู่ร่วมกันหลังจากนี้ ทุกคนจะได้รับมิตรภาพ ความสุข และความทรงจำดี ๆ กลับไปนะคะ"', type: "chant" },
+            { text: "เสียงปรบมือดังขึ้นเบา ๆ ทั่วบริเวณ ก่อนที่พิธีกรจะเชิญทุกคนนั่งล้อมรอบบริเวณพิธีที่จัดเตรียมไว้", effect: "dim" },
+            { text: "กลางวงล้อมมีบายศรีประดับด้วยดอกไม้สีขาวและเหลืองอย่างสวยงาม...", effect: "dim" },
+            { text: "เทียนเล่มเล็กถูกจุดขึ้นทีละเล่ม... จนเกิดแสงสว่างอ่อนโยนท่ามกลางความมืดมิดยามค่ำคืน", effect: "candle" },
+            { text: '"ตามประเพณีของชาวอีสาน การเดินทางมาถึงสถานที่ใหม่ มักมีพิธีบายศรีสู่ขวัญเพื่อต้อนรับและอวยพร"', type: "chant" },
+            { text: '"ค่ำคืนนี้จึงเป็นการรับขวัญเพื่อน ๆ ทั้งสองมหาวิทยาลัยเข้าสู่บ้านของพวกเรา"', type: "chant" },
+            { text: "ผู้เฒ่าผู้แก่ที่ได้รับเชิญจากชุมชนค่อย ๆ ก้าวเข้ามานั่งหน้าพานบายศรี ฝ่ามือเหี่ยวย่นยกขึ้นพนมเหนืออก ก่อนจะหลับตาลงช้า ๆ", effect: "candle" },
+            { text: "เสียงแคนที่บรรเลงอยู่ด้านข้างค่อย ๆ เบาลง เหลือเพียงเสียงลมยามเย็นพัดผ่านยอดไม้", effect: "candle" },
+            { text: '"ศรีเอ๋ย ศรีมา..."', type: "chant" },
+            { text: '"ศรีของลูกหลานจากแดนไกล ศรีของผู้เดินทางข้ามภูเขา ข้ามแม่น้ำ ให้คืนมาอยู่เนื้ออยู่โต อยู่กายอยู่ใจ"', type: "chant" },
+            { text: '"มื้อนี้เป็นมื้อดี มื้อแห่งการพบพ้อ มื้อแห่งการผูกสัมพันธ์ ขอให้ทุกคนอยู่ดีมีแฮง เดินทางปลอดภัย พ้อแต่หมู่มิตรที่จริงใจ"', type: "chant" },
+            { text: "เสียงสวดดำเนินไปอย่างช้า ๆ แสงเทียนส่องไหวไปตามแรงลม...", effect: "candle" },
+            { text: "รอบตัวเงียบสงบเสียจนได้ยินเพียงเสียงแคน เสียงบทเอิ้นขวัญ และเสียงหัวใจของผู้ร่วมพิธี", effect: "candle" },
+            { text: '"มาเด้อขวัญเอ๋ย มาเด้อ..."', type: "chant" },
+            { text: '"ขวัญที่อยู่ภูไกลให้คืนมา ขวัญที่อยู่ฟ้าไกลให้คืนมา ขวัญที่อยู่ทางใดให้คืนมา"', type: "chant" },
+            { text: '"ให้มาอยู่กับเจ้าของ ให้อยู่คู่กายคู่ใจ ให้มีแต่ความสุข ความเจริญ"', type: "chant" },
+            { text: "เมื่อสิ้นคำเอิ้นขวัญ... ผู้เฒ่าจึงหยิบสายสิญจน์ขึ้นมา", effect: "saisin" },
+            { text: '"นับแต่มื้อนี้ไป ขอให้ลูกหลานทั้งสามสถาบันฮักแพงกันคือพี่น้อง"', type: "chant" },
+            { text: '"ยินดีต้อนรับสู่ช่อแก้วเด้อ"', type: "chant" },
+            { text: "นักศึกษาจากทั้งสามมหาวิทยาลัยนั่งเคียงข้างกันอย่างเป็นระเบียบ ราวกับกำแพงของคำว่า คนละสถาบัน กำลังค่อย ๆ จางหายไป", effect: "warm" },
+            { text: "เมื่อพิธีดำเนินมาถึงช่วงสุดท้าย เหล่ารุ่นพี่และตัวแทนจึงหยิบสายสิญจน์ขึ้นมาผูกข้อมือให้แก่ผู้มาเยือนทีละคน", effect: "warm" },
+            { text: "เสียงหัวเราะดังขึ้นเป็นระยะ บทสนทนาแรกเริ่มเกิดขึ้น ความเกร็งจากการพบกันครั้งแรกถูกแทนที่ด้วยรอยยิ้ม", effect: "warm" },
+            { text: '"จากนี้ไป พวกเราอาจไม่ได้เป็นเพียงนักศึกษาจากสามมหาวิทยาลัย"', type: "chant" },
+            { text: '"แต่จะเป็นเพื่อนร่วมค่ายเดียวกัน"', type: "chant" },
+            { text: '"ขอต้อนรับทุกคนเข้าสู่มหาวิทยาลัยช่อแก้วอย่างเป็นทางการค่ะ"', type: "chant" },
+            { text: "เสียงปรบมือดังก้องไปทั่วลานกิจกรรม ภายใต้ท้องฟ้ายามค่ำของเมืองขอนแก่น...", effect: "warm" },
+            { text: "ค่ำคืนแรกของการพบกันจึงเริ่มต้นขึ้นอย่างอบอุ่น\nและเต็มไปด้วยความหมาย...", effect: "warm" },
+            { text: "[ จบตอน ]", effect: "end" }
         ];
 
         let currentIndex = 0;
-        let isAnimating = false;
-        const display = document.getElementById('text-display');
+        let isTyping = false;
+        const textBox = document.getElementById('text-box');
+        const container = document.getElementById('game-container');
+        const lighting = document.getElementById('lighting');
+        const candle = document.getElementById('candle-container');
+        const saisinCanvas = document.getElementById('saisin-canvas');
+        const bgm = document.getElementById('bgm');
 
-        function startGame() {
+        // ฟังก์ชันเริ่มเกม
+        document.getElementById('start-btn').addEventListener('click', () => {
             document.getElementById('start-screen').style.opacity = '0';
-            setTimeout(() => document.getElementById('start-screen').style.display = 'none', 1000);
-            
-            const bgm = document.getElementById('bgm');
-            bgm.volume = 0.5;
-            bgm.play().catch(e => console.log("Audio play prevented", e));
-            
-            showNextText();
-        }
-
-        document.body.addEventListener('click', () => {
-            if (document.getElementById('start-screen').style.display !== 'none') return;
-            if (isAnimating) return;
-            showNextText();
+            setTimeout(() => {
+                document.getElementById('start-screen').style.display = 'none';
+                bgm.volume = 0.5;
+                bgm.play().catch(e => console.log("Audio play blocked by browser"));
+                showText();
+            }, 1000);
         });
 
-        function showNextText() {
-            if (currentIndex >= storyLines.length) return;
-            
-            isAnimating = true;
-            const currentStory = storyLines[currentIndex];
-            
-            // ลบข้อความเก่าออกอย่างนุ่มนวล
-            display.innerHTML = '';
-            
-            const p = document.createElement('p');
-            p.innerHTML = currentStory.text;
-            p.className = `story-text ${currentStory.class || ''}`;
-            display.appendChild(p);
-            
-            // จัดการ Trigger สภาพแวดล้อม
-            if (currentStory.trigger === "sunset") {
-                document.documentElement.style.setProperty('--bg-color', '#1a252f');
-            } else if (currentStory.trigger === "darkness") {
-                document.documentElement.style.setProperty('--bg-color', '#000000');
-            } else if (currentStory.trigger === "candle") {
-                document.documentElement.style.setProperty('--glow-color', 'rgba(255, 152, 0, 0.15)');
-                document.getElementById('candle-wrapper').classList.add('show');
-            } else if (currentStory.trigger === "saisin") {
-                document.getElementById('canvas-saisin').style.opacity = '1';
-                initSaiSin();
+        // ควบคุมการเปลี่ยนตอน
+        container.addEventListener('click', () => {
+            if (isTyping) {
+                isTyping = false; // ข้ามการพิมพ์
+            } else {
+                if (currentIndex < storyData.length - 1) {
+                    currentIndex++;
+                    textBox.style.opacity = '0';
+                    setTimeout(showText, 500);
+                }
             }
+        });
 
-            // แสดงข้อความ
-            setTimeout(() => {
-                p.classList.add('active');
-                isAnimating = false;
-            }, 100);
+        function showText() {
+            const current = storyData[currentIndex];
+            textBox.className = current.type === 'chant' ? 'chant' : '';
+            textBox.innerHTML = '';
+            textBox.style.opacity = '1';
+            
+            // ประมวลผล Effect สภาพแวดล้อม
+            applyEffects(current.effect);
 
-            currentIndex++;
+            // พิมพ์ข้อความ
+            let charIndex = 0;
+            isTyping = true;
+            const textToType = current.text.replace(/\n/g, '<br>');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = textToType;
+            const textArray = Array.from(tempDiv.childNodes).reduce((acc, node) => {
+                if (node.nodeType === 3) return acc.concat(node.nodeValue.split(''));
+                if (node.nodeName === 'BR') acc.push('<br>');
+                return acc;
+            }, []);
+
+            function typeChar() {
+                if (!isTyping) {
+                    textBox.innerHTML = textToType;
+                    return;
+                }
+                if (charIndex < textArray.length) {
+                    if (textArray[charIndex] === '<br>') {
+                        textBox.innerHTML += '<br>';
+                    } else {
+                        textBox.innerHTML += textArray[charIndex];
+                    }
+                    charIndex++;
+                    setTimeout(typeChar, 30);
+                } else {
+                    isTyping = false;
+                }
+            }
+            typeChar();
         }
 
-        // ---------------- ระบบขยับสายสิญจน์ (Canvas) ----------------
-        const canvas = document.getElementById('canvas-saisin');
-        const ctx = canvas.getContext('2d');
-        let lines = [];
+        function applyEffects(effect) {
+            switch(effect) {
+                case 'dim':
+                    lighting.style.background = 'radial-gradient(circle at 50% 60%, rgba(255, 215, 120, 0.05) 0%, rgba(2,2,3,1) 100%)';
+                    break;
+                case 'candle':
+                    lighting.style.background = 'radial-gradient(circle at 50% 80%, rgba(255, 200, 80, 0.25) 0%, rgba(5,5,10,0.9) 70%, rgba(0,0,0,1) 100%)';
+                    candle.style.opacity = '1';
+                    break;
+                case 'saisin':
+                    saisinCanvas.style.opacity = '1';
+                    initSaisin();
+                    break;
+                case 'warm':
+                    lighting.style.background = 'radial-gradient(circle at 50% 80%, rgba(255, 220, 150, 0.3) 0%, rgba(15,15,20,0.85) 80%, rgba(5,5,5,1) 100%)';
+                    break;
+            }
+        }
+
+        // ==========================================
+        // ระบบฟิสิกส์สายสิญจน์ (Verlet Integration)
+        // ==========================================
+        const ctx = saisinCanvas.getContext('2d');
+        let width, height;
+        let ropes = [];
+        let mouse = { x: -1000, y: -1000, active: false };
+
+        window.addEventListener('resize', resizeCanvas);
+        container.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        container.addEventListener('touchmove', (e) => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; });
+        container.addEventListener('mouseleave', () => { mouse.x = -1000; });
+        container.addEventListener('touchend', () => { mouse.x = -1000; });
 
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            width = saisinCanvas.width = window.innerWidth;
+            height = saisinCanvas.height = window.innerHeight;
         }
-        window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        class SaiSinLine {
-            constructor() {
-                this.y1 = Math.random() * canvas.height;
-                this.y2 = Math.random() * canvas.height;
-                this.cp1x = Math.random() * canvas.width;
-                this.cp1y = Math.random() * canvas.height;
-                this.cp2x = Math.random() * canvas.width;
-                this.cp2y = Math.random() * canvas.height;
-                this.offset = Math.random() * 100;
-                this.speed = 0.005 + Math.random() * 0.01;
+        class Point {
+            constructor(x, y, isPinned) {
+                this.x = x; this.y = y;
+                this.oldx = x; this.oldy = y;
+                this.pinned = isPinned;
             }
-            draw(time) {
+        }
+
+        class Rope {
+            constructor(startX, startY, endX, endY, segments) {
+                this.points = [];
+                const distX = (endX - startX) / segments;
+                const distY = (endY - startY) / segments;
+                this.length = Math.sqrt(distX*distX + distY*distY);
+
+                for (let i = 0; i <= segments; i++) {
+                    let isPinned = (i === 0 || i === segments);
+                    this.points.push(new Point(startX + distX * i, startY + distY * i + (Math.random()*10), isPinned));
+                }
+            }
+
+            update() {
+                // Gravity & Motion
+                for (let p of this.points) {
+                    if (!p.pinned) {
+                        let vx = (p.x - p.oldx) * 0.98;
+                        let vy = (p.y - p.oldy) * 0.98;
+                        p.oldx = p.x;
+                        p.oldy = p.y;
+                        p.x += vx;
+                        p.y += vy + 0.1; // Gravity
+
+                        // Repel from mouse
+                        let dx = p.x - mouse.x;
+                        let dy = p.y - mouse.y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 80) {
+                            p.x += (dx / dist) * 2;
+                            p.y += (dy / dist) * 2;
+                        }
+                    }
+                }
+
+                // Constraints (relax 3 times for stiffness)
+                for (let iter = 0; iter < 3; iter++) {
+                    for (let i = 0; i < this.points.length - 1; i++) {
+                        let p1 = this.points[i];
+                        let p2 = this.points[i+1];
+                        let dx = p2.x - p1.x;
+                        let dy = p2.y - p1.y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        let diff = this.length - dist;
+                        let percent = diff / dist / 2;
+                        let offsetX = dx * percent;
+                        let offsetY = dy * percent;
+
+                        if (!p1.pinned) { p1.x -= offsetX; p1.y -= offsetY; }
+                        if (!p2.pinned) { p2.x += offsetX; p2.y += offsetY; }
+                    }
+                }
+            }
+
+            draw(ctx) {
                 ctx.beginPath();
-                ctx.moveTo(0, this.y1 + Math.sin(time * this.speed + this.offset) * 20);
-                ctx.bezierCurveTo(
-                    this.cp1x + Math.sin(time * this.speed * 1.5) * 50, this.cp1y,
-                    this.cp2x + Math.cos(time * this.speed * 0.8) * 50, this.cp2y,
-                    canvas.width, this.y2 + Math.cos(time * this.speed + this.offset) * 20
-                );
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+                ctx.moveTo(this.points[0].x, this.points[0].y);
+                for (let i = 1; i < this.points.length; i++) {
+                    // Smooth curves
+                    let xc = (this.points[i].x + this.points[i-1].x) / 2;
+                    let yc = (this.points[i].y + this.points[i-1].y) / 2;
+                    ctx.quadraticCurveTo(this.points[i-1].x, this.points[i-1].y, xc, yc);
+                }
+                ctx.lineTo(this.points[this.points.length-1].x, this.points[this.points.length-1].y);
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
             }
         }
 
-        function initSaiSin() {
-            // สร้างสายสิญจน์จำนวน 15 เส้น
-            for (let i = 0; i < 15; i++) {
-                lines.push(new SaiSinLine());
+        let animationId;
+        function initSaisin() {
+            if (ropes.length > 0) return;
+            // สร้างสายสิญจน์โยงไปมา (บนลงล่าง, ซ้ายไปขวา)
+            for(let i=0; i<8; i++) {
+                // พาดแนวนอน
+                ropes.push(new Rope(0, Math.random()*height*0.8, width, Math.random()*height*0.8, 40));
+                // พาดแนวตั้ง-เฉียง
+                ropes.push(new Rope(Math.random()*width, 0, Math.random()*width, height, 40));
             }
-            animateSaiSin(0);
+            animateSaisin();
         }
 
-        function animateSaiSin(time) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            lines.forEach(line => line.draw(time));
-            requestAnimationFrame(animateSaiSin);
+        function animateSaisin() {
+            ctx.clearRect(0, 0, width, height);
+            for (let rope of ropes) {
+                rope.update();
+                rope.draw(ctx);
+            }
+            animationId = requestAnimationFrame(animateSaisin);
         }
-
     </script>
 </body>
 </html>
