@@ -4,221 +4,197 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>พิธีบายศรีสู่ขวัญ - ช่อแก้ว</title>
-    <link href="https://fonts.googleapis.com/css2?family=Pridi:wght@300;400;500&family=Prompt:wght@300;400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Charm:wght@400;700&family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-color: #0d1117;
-            --text-color: #e6edf3;
-            --highlight: #f0c674;
-            --dim-bg: #05070a;
-            --warm-bg: #1a1005;
+            --bg-color: #2c3e50;
+            --text-color: #ecf0f1;
+            --glow-color: transparent;
         }
 
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            user-select: none; /* ป้องกันการคลุมดำข้อความ */
             -webkit-tap-highlight-color: transparent;
         }
 
-        body, html {
-            width: 100%;
-            height: 100%;
+        body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Prompt', sans-serif;
+            font-family: 'Kanit', sans-serif;
+            height: 100vh;
+            width: 100vw;
             overflow: hidden;
-            transition: background-color 3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 3s ease, box-shadow 3s ease;
+            box-shadow: inset 0 0 150px var(--glow-color);
         }
 
-        /* หน้าจอเริ่มต้น (จำเป็นสำหรับปลดล็อก Audio Autoplay) */
+        /* หน้าจอเริ่มต้น (ต้องมีเพื่อให้เบราว์เซอร์อนุญาตให้เล่นเพลง) */
         #start-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
+            background: #111;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: #000;
-            z-index: 100;
+            z-index: 1000;
             cursor: pointer;
+            flex-direction: column;
             transition: opacity 1s ease;
         }
-
-        #start-screen h1 {
-            font-family: 'Pridi', serif;
-            font-size: 1.5rem;
-            color: #fff;
-            margin-bottom: 20px;
-            letter-spacing: 1px;
-            text-align: center;
-        }
-
-        .pulse-text {
-            font-size: 0.9rem;
-            color: #888;
+        
+        #start-screen p {
+            font-size: 1.2rem;
             animation: pulse 2s infinite;
+            color: #bdc3c7;
         }
 
         @keyframes pulse {
-            0% { opacity: 0.3; }
+            0%, 100% { opacity: 0.5; }
             50% { opacity: 1; }
-            100% { opacity: 0.3; }
         }
 
-        /* คอนเทนเนอร์หลักของเกม */
-        #game-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
+        /* คอนเทนเนอร์แสดงข้อความ */
+        #story-container {
+            width: 90%;
+            max-width: 400px;
+            height: 60vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            text-align: center;
+            z-index: 10;
+            position: relative;
         }
 
-        /* Canvas สำหรับวาดสายสิญจน์ */
-        #saisin-canvas {
+        .story-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1.5s ease, transform 1.5s ease;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+            margin-bottom: 20px;
+        }
+
+        .story-text.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .font-chant {
+            font-family: 'Charm', cursive;
+            font-size: 1.5rem;
+            color: #f1c40f;
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+        }
+
+        /* คำแนะนำให้กดหน้าจอ */
+        #tap-hint {
+            position: absolute;
+            bottom: 30px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 2px;
+            z-index: 10;
+        }
+
+        /* Canvas สำหรับสายสิญจน์ */
+        #canvas-saisin {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1;
             pointer-events: none;
+            z-index: 5;
             opacity: 0;
-            transition: opacity 2s ease;
+            transition: opacity 3s ease;
         }
 
-        /* กล่องข้อความแบบ Visual Novel */
-        #text-box {
-            position: absolute;
-            bottom: 10%;
-            width: 90%;
-            max-width: 600px;
-            min-height: 120px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            z-index: 10;
-            font-family: 'Pridi', serif;
-            font-size: 1.2rem;
-            line-height: 1.6;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            cursor: pointer;
-        }
-
-        .typing-cursor::after {
-            content: '|';
-            animation: blink 1s step-end infinite;
-        }
-
-        @keyframes blink { 50% { opacity: 0; } }
-
-        .continue-hint {
-            position: absolute;
-            bottom: -25px;
-            right: 10px;
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.4);
-            font-family: 'Prompt', sans-serif;
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-
-        /* --- Realistic CSS Candle --- */
+        /* ---------------- CSS เทียนสมจริง ---------------- */
         #candle-wrapper {
             position: absolute;
-            top: 40%;
+            bottom: -150px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 20;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 150px;
             opacity: 0;
-            transition: opacity 1s ease;
+            transition: bottom 3s ease, opacity 3s ease;
+            z-index: 1;
+        }
+
+        #candle-wrapper.show {
+            bottom: 50px;
+            opacity: 1;
         }
 
         .candle-body {
-            width: 40px;
-            height: 120px;
-            background: linear-gradient(to right, #e8d0a9 0%, #f5e3c6 30%, #fff2db 50%, #e8d0a9 100%);
-            border-radius: 4px 4px 10px 10px;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #eaddcd 0%, #fffbf2 30%, #fffbf2 70%, #d8c8b5 100%);
+            border-radius: 5px 5px 10px 10px;
             position: relative;
-            box-shadow: inset 0 -10px 20px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.5);
+            box-shadow: inset 0 -10px 20px rgba(0,0,0,0.5);
         }
 
-        .candle-wax-drip {
+        /* น้ำตาเทียน */
+        .wax {
             position: absolute;
-            top: 10px; left: -2px;
-            width: 6px; height: 30px;
-            background: #fff2db;
-            border-radius: 10px;
-            box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            top: 0;
+            background: #fffbf2;
+            border-radius: 50px;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
         }
+        .wax-1 { width: 12px; height: 35px; left: 5px; }
+        .wax-2 { width: 10px; height: 25px; right: 10px; top: 5px; }
 
-        .candle-wick {
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
+        .wick {
             width: 4px;
             height: 15px;
-            background: #222;
+            background: #2c3e50;
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
             border-radius: 2px;
         }
 
         .flame {
-            position: absolute;
-            top: -45px;
-            left: 50%;
-            transform: translateX(-50%);
             width: 20px;
             height: 40px;
-            background: radial-gradient(ellipse at bottom, #fff 0%, #ffeb99 20%, #ffb700 60%, transparent 100%);
-            border-radius: 50% 50% 20% 20% / 60% 60% 40% 40%;
-            box-shadow: 0 0 20px #ffb700, 0 0 50px #ff6600, 0 0 80px #ff3300;
-            opacity: 0; /* ซ่อนไว้ก่อนจนกว่าจะจุด */
-            transition: opacity 0.5s ease;
-            transform-origin: bottom center;
-        }
-
-        .flame.lit {
-            opacity: 1;
+            background: #ffeb3b;
+            border-radius: 50% 50% 20% 20%;
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 
+                0 0 20px rgba(255, 235, 59, 0.8),
+                0 0 50px rgba(255, 152, 0, 0.8),
+                0 0 80px rgba(244, 67, 54, 0.6);
             animation: flicker 0.1s infinite alternate;
         }
 
-        @keyframes flicker {
-            0% { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 0.9; }
-            100% { transform: translateX(-50%) scale(1.05) rotate(1deg); opacity: 1; }
-        }
-
-        .interact-prompt {
-            margin-top: 80px;
-            font-size: 1rem;
-            color: #f0c674;
-            animation: pulse 1.5s infinite;
-            pointer-events: none;
-        }
-
-        /* เอฟเฟกต์แสงไฟเมื่อจุดเทียน */
-        #light-overlay {
+        .flame-inner {
+            width: 10px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 40%, transparent 10%, rgba(0,0,0,0.8) 70%);
-            z-index: 5;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 2s ease;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
-        /* แสงออร่าอบอุ่นตอนจบ */
-        .warm-ending {
-            background: radial-gradient(circle at center, #2e1e0a 0%, #05070a 100%) !important;
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1.05) rotate(2deg); opacity: 0.9; }
         }
 
     </style>
@@ -230,266 +206,167 @@
     </audio>
 
     <div id="start-screen" onclick="startGame()">
-        <h1>พิธีบายศรีสู่ขวัญ</h1>
-        <p class="pulse-text">แตะหน้าจอเพื่อเข้าสู่ลานพิธี</p>
+        <p>แตะหน้าจอเพื่อเข้าสู่ลานพิธี</p>
     </div>
 
-    <div id="game-container">
-        <canvas id="saisin-canvas"></canvas>
-        <div id="light-overlay"></div>
-        
-        <div id="candle-wrapper" onclick="lightCandle()">
-            <div class="candle-body">
-                <div class="candle-wax-drip"></div>
-                <div class="candle-wick">
-                    <div class="flame" id="candle-flame"></div>
-                </div>
-            </div>
-            <div class="interact-prompt" id="candle-hint">แตะเพื่อจุดเทียน</div>
-        </div>
+    <canvas id="canvas-saisin"></canvas>
 
-        <div id="text-box" onclick="nextDialogue()">
-            <span id="story-text"></span>
-            <div class="continue-hint" id="continue-hint">แตะเพื่อไปต่อ >></div>
+    <div id="candle-wrapper">
+        <div class="candle-body">
+            <div class="wax wax-1"></div>
+            <div class="wax wax-2"></div>
+            <div class="wick"></div>
+            <div class="flame"><div class="flame-inner"></div></div>
         </div>
     </div>
+
+    <div id="story-container">
+        <div id="text-display"></div>
+    </div>
+
+    <div id="tap-hint">แตะหน้าจอเพื่ออ่านต่อ</div>
 
     <script>
-        // --- ฐานข้อมูลเนื้อเรื่องและ Event Trigger ---
-        const story = [
-            { text: "หลังจากการเดินทางอันยาวนานตลอดทั้งวัน ในที่สุดรถบัสของมหาวิทยาลัยสิบศิลป์สิริศาสตร์และมหาวิทยาลัยเบงจันทร์ก็เคลื่อนตัวเข้าสู่มหาวิทยาลัยช่อแก้ว...", effect: "none" },
-            { text: "กระทั่งยามเย็นเมื่อทุกคนจัดการธุระส่วนตัวเรียบร้อยแล้ว จึงถูกเชิญมาที่ลานหน้าคณะศิลปกรรมศาสตร์", effect: "none" },
-            { text: "แสงแดดยามเย็นกำลังอ่อนตัวลง... ขณะที่ลมต้นฤดูฝนพัดเอากลิ่นดินและความเย็นสบายเข้ามาปะทะใบหน้า", effect: "dim-light" },
-            { text: "ภายในลานหน้าคณะถูกจัดเตรียมไว้ตั้งแต่ช่วงบ่าย ผ้าขาวถูกขึงประดับเหนือศีรษะ...", effect: "show-saisin" },
-            { text: "สายสิญจน์ทอดยาวล้อมพื้นที่พิธีเอาไว้ ขณะที่บายศรีต้นใหญ่ตั้งเด่นอยู่กลางลานรอรับผู้มาเยือน", effect: "none" },
-            { text: "นักศึกษาช่อแก้วทยอยยืนเรียงแถวอยู่ทั้งสองข้างทาง เสียงพูดคุยและรอยยิ้มดังขึ้นเป็นระยะเมื่อได้พบหน้ากันเป็นครั้งแรก", effect: "none" },
-            { text: "บางคนเคยพูดคุยกันผ่านหน้าจอ\nบางคนเคยเห็นเพียงภาพถ่าย\nและบางคนก็ยังไม่เคยรู้จักกันเลย", effect: "none" },
-            { text: "แต่ค่ำคืนนี้... คือจุดเริ่มต้นของการทำความรู้จักกัน", effect: "none" },
-            { text: "เมื่อสมาชิกจากทั้งสามมหาวิทยาลัยมารวมตัวกันครบถ้วนแล้ว ตัวแทนสโมสรนักศึกษาช่อแก้วจึงก้าวออกมากล่าวต้อนรับ", effect: "none" },
-            { text: "\"สวัสดีทุกคนค่ะ\"", effect: "none" },
-            { text: "\"ในนามของมหาวิทยาลัยช่อแก้ว พวกเรายินดีต้อนรับเพื่อน ๆ จากสิบศิลป์สิริศาสตร์และเบงจันทร์สู่จังหวัดขอนแก่น\"", effect: "none" },
-            { text: "\"พวกเราหวังว่าตลอดระยะเวลาที่จะอยู่ร่วมกันหลังจากนี้ ทุกคนจะได้รับทั้งมิตรภาพ ความสุข และความทรงจำดี ๆ กลับไปนะคะ\"", effect: "none" },
-            { text: "เสียงปรบมือดังขึ้นเบา ๆ ทั่วบริเวณ ก่อนที่พิธีกรจะเชิญทุกคนนั่งล้อมรอบบริเวณพิธีที่จัดเตรียมไว้", effect: "none" },
-            { text: "กลางวงล้อมมีบายศรีประดับด้วยดอกไม้สีขาวและเหลืองอย่างสวยงาม...", effect: "show-candle" },
-            { text: "เทียนเล่มเล็กกำลังรอการจุดประกาย เพื่อสร้างแสงสว่างอ่อนโยนท่ามกลางยามค่ำ", effect: "wait-for-candle" },
-            { text: "\"ตามประเพณีของชาวอีสาน การเดินทางมาถึงสถานที่ใหม่ มักมีพิธีบายศรีสู่ขวัญเพื่อต้อนรับและอวยพร\"", effect: "lit-environment" },
-            { text: "\"ค่ำคืนนี้จึงเป็นการรับขวัญเพื่อน ๆ ทั้งสองมหาวิทยาลัยเข้าสู่บ้านของพวกเรา\"", effect: "none" },
-            { text: "เมื่อทุกคนนั่งประจำที่เรียบร้อย ผู้เฒ่าผู้แก่ที่ได้รับเชิญจากชุมชนค่อย ๆ ก้าวเข้ามานั่งหน้าพานบายศรี...", effect: "none" },
-            { text: "ฝ่ามือเหี่ยวย่นยกขึ้นพนมเหนืออก ก่อนจะหลับตาลงช้า ๆ เสียงแคนที่บรรเลงอยู่ด้านข้างค่อย ๆ เบาลง", effect: "none" },
-            { text: "\"ศรีเอ๋ย ศรีมา...\"", effect: "intense-saisin" },
-            { text: "เสียงทุ้มแผ่วดังขึ้น\n\"ศรีของลูกหลานจากแดนไกล ศรีของผู้เดินทางข้ามภูเขา ข้ามแม่น้ำ ให้คืนมาอยู่เนื้ออยู่โต อยู่กายอยู่ใจ\"", effect: "none" },
-            { text: "\"มื้อนี้เป็นมื้อดี มื้อแห่งการพบพ้อ มื้อแห่งการผูกสัมพันธ์\"", effect: "none" },
-            { text: "\"ขอให้ทุกคนอยู่ดีมีแฮง เดินทางปลอดภัย พ้อแต่หมู่มิตรที่จริงใจ\"", effect: "none" },
-            { text: "เสียงสวดดำเนินไปอย่างช้า ๆ แสงเทียนส่องไหวไปตามแรงลม รอบตัวเงียบสงบเสียจนได้ยินเพียงเสียงบทเอิ้นขวัญ", effect: "none" },
-            { text: "\"มาเด้อขวัญเอ๋ย มาเด้อ... ขวัญที่อยู่ภูไกลให้คืนมา ขวัญที่อยู่ฟ้าไกลให้คืนมา\"", effect: "none" },
-            { text: "\"ให้มาอยู่กับเจ้าของ ให้อยู่คู่กายคู่ใจ ให้มีแต่ความสุข ความเจริญ\"", effect: "none" },
-            { text: "เมื่อสิ้นคำเอิ้นขวัญ ผู้เฒ่าจึงหยิบสายสิญจน์ขึ้นมา ก่อนกล่าวประโยคสุดท้ายด้วยรอยยิ้ม", effect: "calm-saisin" },
-            { text: "\"นับแต่มื้อนี้ไป ขอให้ลูกหลานทั้งสามสถาบันฮักแพงกันคือพี่น้อง... ยินดีต้อนรับสู่ช่อแก้วเด้อ\"", effect: "warm-ending" },
-            { text: "นักศึกษาจากทั้งสามมหาวิทยาลัยนั่งเคียงข้างกันอย่างเป็นระเบียบ ราวกับกำแพงของคำว่า 'คนละสถาบัน' กำลังค่อย ๆ จางหายไป", effect: "none" },
-            { text: "เหล่ารุ่นพี่และตัวแทนจากมหาวิทยาลัยช่อแก้วเริ่มหยิบสายสิญจน์ขึ้นมาผูกข้อมือให้แก่ผู้มาเยือนทีละคน พร้อมคำอวยพร", effect: "none" },
-            { text: "เสียงหัวเราะดังขึ้นเป็นระยะ บทสนทนาแรกเริ่มเกิดขึ้น และความเกร็งก็ค่อย ๆ ถูกแทนที่ด้วยรอยยิ้ม", effect: "none" },
-            { text: "\"จากนี้ไป พวกเราอาจไม่ได้เป็นเพียงนักศึกษาจากสามมหาวิทยาลัย...\"", effect: "none" },
-            { text: "\"แต่จะเป็นเพื่อนร่วมค่ายเดียวกัน ขอต้อนรับทุกคนเข้าสู่มหาวิทยาลัยช่อแก้วอย่างเป็นทางการค่ะ\"", effect: "none" },
-            { text: "ภายใต้ท้องฟ้ายามค่ำของเมืองขอนแก่น ค่ำคืนแรกของการพบกันจึงเริ่มต้นขึ้นอย่างอบอุ่น และเต็มไปด้วยความหมาย...", effect: "fade-out" }
+        const storyLines = [
+            { text: "หลังจากการเดินทางอันยาวนานตลอดทั้งวัน ในที่สุดรถบัสของมหาวิทยาลัยสิบศิลป์สิริศาสตร์และมหาวิทยาลัยเบงจันทร์ก็เคลื่อนตัวเข้าสู่มหาวิทยาลัยช่อแก้ว", class: "" },
+            { text: "กระทั่งยามเย็นเมื่อทุกคนจัดการธุระส่วนตัวเรียบร้อยแล้วจึงถูกเชิญมาที่ลานหน้าคณะศิลปกรรมศาสตร์", class: "" },
+            { text: "แสงแดดยามเย็นกำลังอ่อนตัวลง...", trigger: "sunset" },
+            { text: "ขณะที่ลมต้นฤดูฝนพัดเอากลิ่นดินและความเย็นสบายเข้ามาปะทะใบหน้า", class: "" },
+            { text: "ผ้าขาวถูกขึงประดับเหนือศีรษะ สายสิญจน์ทอดยาวล้อมพื้นที่พิธีเอาไว้ ขณะที่บายศรีต้นใหญ่ตั้งเด่นอยู่กลางลานรอรับผู้มาเยือน", class: "" },
+            { text: "นักศึกษาช่อแก้วทยอยยืนเรียงแถวอยู่ทั้งสองข้างทาง เสียงพูดคุยและรอยยิ้มดังขึ้นเป็นระยะเมื่อได้พบหน้ากันเป็นครั้งแรก", class: "" },
+            { text: "บางคนเคยพูดคุยกันผ่านหน้าจอ... บางคนเคยเห็นเพียงภาพถ่าย... และบางคนก็ยังไม่เคยรู้จักกันเลย", class: "" },
+            { text: "แต่ค่ำคืนนี้คือจุดเริ่มต้นของการทำความรู้จักกัน", class: "" },
+            { text: "\"สวัสดีทุกคนค่ะ\"", class: "" },
+            { text: "\"ในนามของมหาวิทยาลัยช่อแก้ว พวกเรายินดีต้อนรับเพื่อน ๆ จากมหาวิทยาลัยสิบศิลป์สิริศาสตร์และมหาวิทยาลัยเบงจันทร์สู่จังหวัดขอนแก่น\"", class: "" },
+            { text: "\"ตามประเพณีของชาวอีสาน การเดินทางมาถึงสถานที่ใหม่หรือการเริ่มต้นสิ่งใหม่ มักมีพิธีบายศรีสู่ขวัญเพื่อเป็นการต้อนรับและอวยพร\"", class: "" },
+            { text: "กลางวงล้อมมีบายศรีประดับด้วยดอกไม้สีขาวและเหลืองอย่างสวยงาม...", trigger: "darkness" },
+            { text: "เทียนเล่มเล็กถูกจุดขึ้นทีละเล่ม จนเกิดแสงสว่างอ่อนโยนท่ามกลางความมืดมิด", trigger: "candle" },
+            { text: "ผู้เฒ่าผู้แก่ที่ได้รับเชิญจากชุมชนค่อย ๆ ก้าวเข้ามานั่งหน้าพานบายศรี ฝ่ามือเหี่ยวย่นยกขึ้นพนมเหนืออก ก่อนจะหลับตาลงช้า ๆ", class: "" },
+            { text: "เสียงแคนที่บรรเลงอยู่ด้านข้างค่อย ๆ เบาลง เหลือเพียงเสียงลมยามเย็นพัดผ่านยอดไม้", class: "" },
+            { text: "ศรีเอ๋ย ศรีมา...", class: "font-chant" },
+            { text: "ศรีของลูกหลานจากแดนไกล<br>ศรีของผู้เดินทางข้ามภูเขา ข้ามแม่น้ำ<br>ให้คืนมาอยู่เนื้ออยู่โต อยู่กายอยู่ใจ", class: "font-chant" },
+            { text: "มื้อนี้เป็นมื้อดี<br>มื้อแห่งการพบพ้อ<br>มื้อแห่งการผูกสัมพันธ์", class: "font-chant" },
+            { text: "แสงเทียนส่องไหวไปตามแรงลม รอบตัวเงียบสงบเสียจนได้ยินเพียงเสียงบทเอิ้นขวัญ", class: "" },
+            { text: "มาเด้อขวัญเอ๋ย มาเด้อ<br>ขวัญที่อยู่ภูไกลให้คืนมา<br>ขวัญที่อยู่ฟ้าไกลให้คืนมา", class: "font-chant" },
+            { text: "ให้มาอยู่กับเจ้าของ ให้อยู่คู่กายคู่ใจ<br>ให้มีแต่ความสุข ความเจริญ", class: "font-chant" },
+            { text: "เมื่อสิ้นคำเอิ้นขวัญ ผู้เฒ่าจึงหยิบสายสิญจน์ขึ้นมา...", trigger: "saisin" },
+            { text: "\"นับแต่มื้อนี้ไป ขอให้ลูกหลานทั้งสามสถาบันฮักแพงกันคือพี่น้อง\"", class: "font-chant" },
+            { text: "\"ยินดีต้อนรับสู่ช่อแก้วเด้อ\"", class: "font-chant" },
+            { text: "เหล่ารุ่นพี่และตัวแทนจากมหาวิทยาลัยช่อแก้วจึงหยิบสายสิญจน์ขึ้นมาผูกข้อมือให้แก่ผู้มาเยือนทีละคน พร้อมคำอวยพร", class: "" },
+            { text: "เสียงหัวเราะดังขึ้น บทสนทนาแรกเริ่มเกิดขึ้น และความเกร็งจากการพบกันครั้งแรกก็ค่อย ๆ ถูกแทนที่ด้วยรอยยิ้ม", class: "" },
+            { text: "\"จากนี้ไป พวกเราอาจไม่ได้เป็นเพียงนักศึกษาจากสามมหาวิทยาลัย... แต่จะเป็นเพื่อนร่วมค่ายเดียวกัน\"", class: "" },
+            { text: "ภายใต้ท้องฟ้ายามค่ำของเมืองขอนแก่น ค่ำคืนแรกของการพบกันจึงเริ่มต้นขึ้นอย่างอบอุ่น...", class: "" },
+            { text: "และเต็มไปด้วยความหมาย.", class: "" }
         ];
 
-        let currentLine = 0;
-        let isTyping = false;
-        let isWaitingForAction = false;
-        let textElement = document.getElementById("story-text");
-        let hintElement = document.getElementById("continue-hint");
-        let typeInterval;
+        let currentIndex = 0;
+        let isAnimating = false;
+        const display = document.getElementById('text-display');
 
-        // --- ระบบ Game Loop และ Typewriter ---
         function startGame() {
-            document.getElementById("start-screen").style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById("start-screen").style.display = 'none';
-                // พยายามเล่นเพลง (ถ้าใส่ไฟล์ไว้)
-                let bgm = document.getElementById("bgm");
-                bgm.volume = 0.5;
-                bgm.play().catch(e => console.log("Audio play blocked or file not found."));
-                
-                showLine();
-            }, 1000);
+            document.getElementById('start-screen').style.opacity = '0';
+            setTimeout(() => document.getElementById('start-screen').style.display = 'none', 1000);
             
-            initCanvas();
-            animateCanvas();
+            const bgm = document.getElementById('bgm');
+            bgm.volume = 0.5;
+            bgm.play().catch(e => console.log("Audio play prevented", e));
+            
+            showNextText();
         }
 
-        function showLine() {
-            if (currentLine >= story.length) return;
-            
-            let lineData = story[currentLine];
-            isTyping = true;
-            textElement.innerHTML = "";
-            textElement.classList.add("typing-cursor");
-            hintElement.style.opacity = '0';
-            
-            triggerEffect(lineData.effect);
-
-            let charIndex = 0;
-            // ความเร็วการพิมพ์ (มิลลิวินาที)
-            let speed = 40; 
-
-            clearInterval(typeInterval);
-            typeInterval = setInterval(() => {
-                // รองรับการเว้นบรรทัด \n
-                if(lineData.text.charAt(charIndex) === '\n') {
-                    textElement.innerHTML += "<br>";
-                } else {
-                    textElement.innerHTML += lineData.text.charAt(charIndex);
-                }
-                charIndex++;
-
-                if (charIndex >= lineData.text.length) {
-                    clearInterval(typeInterval);
-                    isTyping = false;
-                    textElement.classList.remove("typing-cursor");
-                    if (!isWaitingForAction) {
-                        hintElement.style.opacity = '1';
-                    }
-                }
-            }, speed);
-        }
-
-        function nextDialogue() {
-            if (isWaitingForAction) return; // ล็อคไว้ถ้าต้องทำกิจกรรมก่อน (เช่น จุดเทียน)
-
-            if (isTyping) {
-                // ถ้ารีบกด ให้แสดงข้อความทั้งหมดทันที
-                clearInterval(typeInterval);
-                let fullText = story[currentLine].text.replace(/\n/g, "<br>");
-                textElement.innerHTML = fullText;
-                isTyping = false;
-                textElement.classList.remove("typing-cursor");
-                hintElement.style.opacity = '1';
-            } else {
-                // ไปบรรทัดต่อไป
-                currentLine++;
-                showLine();
-            }
-        }
-
-        // --- ระบบ Visual Effects ---
-        function triggerEffect(effect) {
-            const body = document.body;
-            const candleWrapper = document.getElementById("candle-wrapper");
-            const lightOverlay = document.getElementById("light-overlay");
-
-            switch(effect) {
-                case "dim-light":
-                    body.style.backgroundColor = "var(--dim-bg)";
-                    break;
-                case "show-saisin":
-                    document.getElementById("saisin-canvas").style.opacity = '0.6';
-                    saisinActive = true;
-                    break;
-                case "show-candle":
-                    candleWrapper.style.display = 'flex';
-                    setTimeout(() => candleWrapper.style.opacity = '1', 50);
-                    break;
-                case "wait-for-candle":
-                    isWaitingForAction = true;
-                    hintElement.style.display = 'none'; // ซ่อนปุ่มไปต่อ
-                    break;
-                case "lit-environment":
-                    lightOverlay.style.opacity = '1';
-                    break;
-                case "intense-saisin":
-                    saisinIntensity = 3; // สายสิญจน์ขยับแรงขึ้นเหมือนมีมนต์ขลัง
-                    break;
-                case "calm-saisin":
-                    saisinIntensity = 1;
-                    break;
-                case "warm-ending":
-                    body.classList.add("warm-ending");
-                    document.getElementById("saisin-canvas").style.opacity = '0.2';
-                    candleWrapper.style.opacity = '0';
-                    setTimeout(() => candleWrapper.style.display = 'none', 1000);
-                    break;
-                case "fade-out":
-                    hintElement.style.display = 'none';
-                    setTimeout(() => {
-                        document.getElementById("text-box").style.opacity = '0';
-                    }, 5000);
-                    break;
-            }
-        }
-
-        function lightCandle() {
-            if(!isWaitingForAction) return;
-            
-            document.getElementById("candle-flame").classList.add("lit");
-            document.getElementById("candle-hint").style.opacity = '0';
-            
-            // เอฟเฟกต์หน้าจอสว่างวาบขึ้นนิดนึง
-            document.body.style.backgroundColor = "#120d05";
-            
-            isWaitingForAction = false;
-            hintElement.style.display = 'block';
-            
-            // เปลี่ยน dialogue ถัดไปอัตโนมัติหลังจากจุดเทียนเสร็จ
-            setTimeout(() => {
-                nextDialogue();
-            }, 1500);
-        }
-
-        // --- ระบบ Canvas วาดสายสิญจน์พลิ้วไหว ---
-        const canvas = document.getElementById('saisin-canvas');
-        const ctx = canvas.getContext('2d');
-        let width, height;
-        let saisinLines = [];
-        let saisinActive = false;
-        let saisinIntensity = 1;
-        let time = 0;
-
-        function initCanvas() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            
-            // สร้างเส้นสายสิญจน์พาดไปมา 15 เส้น
-            for(let i=0; i<15; i++) {
-                saisinLines.push({
-                    yOffset: Math.random() * height * 0.8,
-                    amplitude: 20 + Math.random() * 40,
-                    frequency: 0.01 + Math.random() * 0.02,
-                    phase: Math.random() * Math.PI * 2,
-                    thickness: Math.random() > 0.8 ? 1.5 : 0.8
-                });
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
+        document.body.addEventListener('click', () => {
+            if (document.getElementById('start-screen').style.display !== 'none') return;
+            if (isAnimating) return;
+            showNextText();
         });
 
-        function animateCanvas() {
-            requestAnimationFrame(animateCanvas);
-            if(!saisinActive) return;
-
-            ctx.clearRect(0, 0, width, height);
-            time += 0.02 * saisinIntensity;
-
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        function showNextText() {
+            if (currentIndex >= storyLines.length) return;
             
-            saisinLines.forEach((line, index) => {
-                ctx.lineWidth = line.thickness;
-                ctx.beginPath();
-                
-                // วาดเส้นแบบโค้ง Sine wave ที่ขยับไปมาเหมือนโดนลม
-                for(let x = 0; x <= width; x += 20) {
-                    let y = line.yOffset + 
-                            Math.sin(x * line.frequency + time + line.phase) * (line.amplitude * saisinIntensity) +
-                            Math.sin(time * 0.5 + index) * 20; // การแกว่งรวมๆ
-                    
-                    if(x === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-                ctx.stroke();
-            });
+            isAnimating = true;
+            const currentStory = storyLines[currentIndex];
+            
+            // ลบข้อความเก่าออกอย่างนุ่มนวล
+            display.innerHTML = '';
+            
+            const p = document.createElement('p');
+            p.innerHTML = currentStory.text;
+            p.className = `story-text ${currentStory.class || ''}`;
+            display.appendChild(p);
+            
+            // จัดการ Trigger สภาพแวดล้อม
+            if (currentStory.trigger === "sunset") {
+                document.documentElement.style.setProperty('--bg-color', '#1a252f');
+            } else if (currentStory.trigger === "darkness") {
+                document.documentElement.style.setProperty('--bg-color', '#000000');
+            } else if (currentStory.trigger === "candle") {
+                document.documentElement.style.setProperty('--glow-color', 'rgba(255, 152, 0, 0.15)');
+                document.getElementById('candle-wrapper').classList.add('show');
+            } else if (currentStory.trigger === "saisin") {
+                document.getElementById('canvas-saisin').style.opacity = '1';
+                initSaiSin();
+            }
+
+            // แสดงข้อความ
+            setTimeout(() => {
+                p.classList.add('active');
+                isAnimating = false;
+            }, 100);
+
+            currentIndex++;
         }
+
+        // ---------------- ระบบขยับสายสิญจน์ (Canvas) ----------------
+        const canvas = document.getElementById('canvas-saisin');
+        const ctx = canvas.getContext('2d');
+        let lines = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class SaiSinLine {
+            constructor() {
+                this.y1 = Math.random() * canvas.height;
+                this.y2 = Math.random() * canvas.height;
+                this.cp1x = Math.random() * canvas.width;
+                this.cp1y = Math.random() * canvas.height;
+                this.cp2x = Math.random() * canvas.width;
+                this.cp2y = Math.random() * canvas.height;
+                this.offset = Math.random() * 100;
+                this.speed = 0.005 + Math.random() * 0.01;
+            }
+            draw(time) {
+                ctx.beginPath();
+                ctx.moveTo(0, this.y1 + Math.sin(time * this.speed + this.offset) * 20);
+                ctx.bezierCurveTo(
+                    this.cp1x + Math.sin(time * this.speed * 1.5) * 50, this.cp1y,
+                    this.cp2x + Math.cos(time * this.speed * 0.8) * 50, this.cp2y,
+                    canvas.width, this.y2 + Math.cos(time * this.speed + this.offset) * 20
+                );
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
+
+        function initSaiSin() {
+            // สร้างสายสิญจน์จำนวน 15 เส้น
+            for (let i = 0; i < 15; i++) {
+                lines.push(new SaiSinLine());
+            }
+            animateSaiSin(0);
+        }
+
+        function animateSaiSin(time) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            lines.forEach(line => line.draw(time));
+            requestAnimationFrame(animateSaiSin);
+        }
+
     </script>
 </body>
 </html>
