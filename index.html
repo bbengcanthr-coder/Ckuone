@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ยินดีต้อนรับสู่ช่อแก้ว</title>
+    <link href="https://fonts.googleapis.com/css2?family=Charm:wght@400;700&family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0a0d; /* มืดแบบพลบค่ำ ไม่ใช่ดำสนิท */
+            --text-color: #dcdcdc;
+            --accent-color: #ffaa00; /* สีแสงเทียน */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Prompt', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1c1c24 0%, #050508 100%);
+            transition: background 2s ease;
+        }
+
+        /* เอฟเฟกต์แสงเทียนเบาๆ */
+        .candle-flicker {
+            animation: flicker 4s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { background: radial-gradient(circle at center, #1c1c24 0%, #050508 100%); }
+            50% { background: radial-gradient(circle at center, #22222a 0%, #050508 100%); }
+            100% { background: radial-gradient(circle at center, #1a1a20 0%, #050508 100%); }
+        }
+
+        #game-container {
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        #story-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            font-weight: 300;
+            min-height: 150px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            transition: opacity 0.5s ease;
+        }
+
+        /* สไตล์สำหรับบทสวดที่ดูขลัง */
+        .chanting-text {
+            font-family: 'Charm', cursive;
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            text-shadow: 0 0 15px rgba(255, 170, 0, 0.4);
+            font-weight: 700;
+        }
+
+        .action-btn {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
+            padding: 12px 24px;
+            font-family: 'Prompt', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+            letter-spacing: 1px;
+        }
+
+        .action-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+            animation: pulse 2s infinite;
+        }
+
+        .action-btn:hover, .action-btn:active {
+            background-color: var(--text-color);
+            color: var(--bg-color);
+        }
+
+        /* ปุ่มพิเศษสำหรับแอคชั่นสำคัญ */
+        .special-btn {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+        .special-btn:hover, .special-btn:active {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        #audio-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #888;
+            cursor: pointer;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="candle-flicker">
+
+    <audio id="bg-music" loop>
+        <source src="bgm.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="audio-control">🎵 แตะเพื่อเปิดเสียง</div>
+
+    <div id="game-container">
+        <div id="story-text"></div>
+        <button id="next-btn" class="action-btn">แตะเพื่อไปต่อ</button>
+    </div>
+
+    <script>
+        // โครงสร้างเนื้อเรื่อง: text = ข้อความ, type = รูปแบบ (normal/chant/action), btnText = คำบนปุ่ม
+        const story = [
+            { text: "หลังจากการเดินทางอันยาวนานตลอดทั้งวัน...", type: "normal", btnText: "ดำเนินการต่อ" },
+            { text: "ในที่สุดรถบัสของมหาวิทยาลัยสิบศิลป์สิริศาสตร์และมหาวิทยาลัยเบงจันทร์ก็เคลื่อนตัวเข้าสู่มหาวิทยาลัยช่อแก้ว", type: "normal", btnText: "เดินลงจากรถ" },
+            { text: "แสงแดดยามเย็นกำลังอ่อนตัวลง ขณะที่ลมต้นฤดูฝนพัดเอากลิ่นดินและความเย็นสบายเข้ามาปะทะใบหน้า", type: "normal", btnText: "สูดลมหายใจ" },
+            { text: "ผ้าขาวถูกขึงประดับเหนือศีรษะ สายสิญจน์ทอดยาวล้อมพื้นที่พิธีเอาไว้...", type: "normal", btnText: "มองไปรอบๆ" },
+            { text: "ขณะที่บายศรีต้นใหญ่ตั้งเด่นอยู่กลางลานรอรับผู้มาเยือน", type: "normal", btnText: "นั่งลงประจำที่" },
+            { text: "เทียนเล่มเล็กถูกจุดขึ้นทีละเล่มจนเกิดแสงสว่างอ่อนโยนท่ามกลางยามค่ำ", type: "action", btnText: "[ แตะเพื่อจุดเทียน ]", isSpecial: true },
+            { text: "ผู้เฒ่าผู้แก่ที่ได้รับเชิญจากชุมชนค่อย ๆ ก้าวเข้ามานั่งหน้าพานบายศรี...", type: "normal", btnText: "หลับตาลงช้าๆ" },
+            { text: "เสียงแคนที่บรรเลงอยู่ด้านข้างค่อย ๆ เบาลง เหลือเพียงเสียงลมยามเย็นพัดผ่านยอดไม้...", type: "normal", btnText: "ฟังเสียง" },
+            { text: "ศรีเอ๋ย ศรีมา...", type: "chant", btnText: "..." },
+            { text: "ศรีของลูกหลานจากแดนไกล<br>ศรีของผู้เดินทางข้ามภูเขา ข้ามแม่น้ำ<br>ให้คืนมาอยู่เนื้ออยู่โต อยู่กายอยู่ใจ", type: "chant", btnText: "..." },
+            { text: "มื้อนี้เป็นมื้อดี<br>มื้อแห่งการพบพ้อ<br>มื้อแห่งการผูกสัมพันธ์", type: "chant", btnText: "ลืมตาขึ้น" },
+            { text: "เหล่ารุ่นพี่และตัวแทนจากมหาวิทยาลัยช่อแก้วจึงหยิบสายสิญจน์ขึ้นมา", type: "action", btnText: "[ ยื่นข้อมือเพื่อรับขวัญ ]", isSpecial: true },
+            { text: "จากนี้ไป พวกเราอาจไม่ได้เป็นเพียงนักศึกษาจากสามมหาวิทยาลัย... แต่จะเป็นเพื่อนร่วมค่ายเดียวกัน", type: "normal", btnText: "ยิ้มรับ" },
+            { text: "ขอต้อนรับทุกคนเข้าสู่มหาวิทยาลัยช่อแก้วอย่างเป็นทางการค่ะ", type: "normal", btnText: "จบบทนำ" }
+        ];
+
+        let currentLine = 0;
+        let isTyping = false;
+        
+        const textContainer = document.getElementById("story-text");
+        const nextBtn = document.getElementById("next-btn");
+        const bgMusic = document.getElementById("bg-music");
+        const audioControl = document.getElementById("audio-control");
+
+        // ระบบ Audio
+        let musicPlaying = false;
+        audioControl.addEventListener('click', () => {
+            if (musicPlaying) {
+                bgMusic.pause();
+                audioControl.innerText = "🎵 ปิดเสียงอยู่";
+            } else {
+                bgMusic.play();
+                bgMusic.volume = 0.5;
+                audioControl.innerText = "🎵 เปิดเสียงอยู่";
+            }
+            musicPlaying = !musicPlaying;
+        });
+
+        // ระบบพิมพ์ดีด (Typewriter Effect)
+        function typeWriter(text, index, speed, callback) {
+            if (index < text.length) {
+                // เช็ค HTML tags (เช่น <br>) เพื่อไม่ให้พิมพ์ทีละตัวอักษรผิดพลาด
+                if(text.charAt(index) === '<') {
+                    let tag = "";
+                    while(text.charAt(index) !== '>') {
+                        tag += text.charAt(index);
+                        index++;
+                    }
+                    tag += '>';
+                    textContainer.innerHTML += tag;
+                } else {
+                    textContainer.innerHTML += text.charAt(index);
+                }
+                setTimeout(() => typeWriter(text, index + 1, speed, callback), speed);
+            } else {
+                callback();
+            }
+        }
+
+        function showStory() {
+            if (currentLine >= story.length) return;
+            
+            isTyping = true;
+            nextBtn.classList.remove("visible");
+            nextBtn.classList.remove("special-btn");
+            textContainer.innerHTML = "";
+            
+            const currentObj = story[currentLine];
+
+            // จัดการ Style ของฟอนต์
+            if (currentObj.type === "chant") {
+                textContainer.className = "chanting-text";
+            } else {
+                textContainer.className = "";
+            }
+
+            // ถ้าเป็น Action ให้รอผู้เล่นกดโดยไม่ต้องมี Typewriter นานๆ
+            if (currentObj.type === "action") {
+                typeWriter(currentObj.text, 0, 30, () => {
+                    setupButton(currentObj);
+                });
+            } else {
+                typeWriter(currentObj.text, 0, 50, () => {
+                    setupButton(currentObj);
+                });
+            }
+        }
+
+        function setupButton(currentObj) {
+            nextBtn.innerText = currentObj.btnText;
+            if (currentObj.isSpecial) {
+                nextBtn.classList.add("special-btn");
+            }
+            nextBtn.classList.add("visible");
+            isTyping = false;
+        }
+
+        nextBtn.addEventListener("click", () => {
+            if (!isTyping) {
+                currentLine++;
+                showStory();
+            }
+        });
+
+        // เริ่มเกม
+        setTimeout(showStory, 1000);
+
+    </script>
+</body>
+</html>
