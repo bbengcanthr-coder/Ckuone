@@ -77,7 +77,7 @@
             color: #fcebbb;
         }
 
-        /* ปุ่มเริ่มเกม (เพื่อปลดล็อกเสียง) */
+        /* ปุ่มเริ่มเกม */
         #start-screen {
             position: absolute;
             top: 0;
@@ -110,7 +110,55 @@
             color: #000;
         }
 
-        /* เทียนสมจริง (CSS Render) */
+        /* มินิเกมสุ่มสถานการณ์ */
+        #random-game {
+            display: none;
+            opacity: 0;
+            transition: opacity 2s ease;
+            text-align: center;
+            z-index: 30;
+            cursor: default;
+        }
+
+        #random-game h2 {
+            font-family: 'Charm', cursive;
+            color: #fcebbb;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+
+        #player-name {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            border: 1px solid #555;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-family: 'Prompt', sans-serif;
+            text-align: center;
+            outline: none;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        #player-name:focus {
+            border-color: #fcebbb;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #random-result {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #fff;
+            min-height: 80px;
+            transition: opacity 0.5s ease;
+        }
+
+        /* เทียนสมจริง */
         #candle-container {
             position: absolute;
             bottom: 20%;
@@ -217,7 +265,16 @@
 
     <div id="game-container">
         <div id="text-box"></div>
-        <div class="click-hint">แตะหน้าจอเพื่อไปต่อ</div>
+        
+        <div id="random-game" onclick="event.stopPropagation();">
+            <h2>ค่ำคืนนี้ของคุณ...</h2>
+            <input type="text" id="player-name" placeholder="กรอกชื่อเล่นของคุณ..." autocomplete="off">
+            <br>
+            <button class="btn" id="random-btn">สุ่มสถานการณ์</button>
+            <div id="random-result"></div>
+        </div>
+
+        <div class="click-hint" id="click-hint">แตะหน้าจอเพื่อไปต่อ</div>
     </div>
 
     <script>
@@ -262,14 +319,72 @@
             { text: "[ จบตอน ]", effect: "end" }
         ];
 
+        // ฐานข้อมูลสถานการณ์สำหรับการสุ่ม
+        const randomSituations = [
+            "คุณได้รับด้ายผูกแขนจากอาจารย์อาวุโส และคำอวยพรให้โชคดีมีชัยมีคนเมตตา เป็นที่รักของทุกคน",
+            "มีคนยื่นขนมลืมกลืนกะทิลาวาให้คุณได้ลองชิม",
+            "รุ่นพี่อวยพรให้เรียนจบตามฝัน ถ้าไม่ฝันก็ขอให้ฝัน",
+            "ลมเย็นพัดผ่านระหว่างสวดตามด้วยกลิ่นหอมของดอกแก้ว",
+            "ได้ที่นั่งติดเพื่อนใหม่ ดูเป็นคนเนิร์ดๆ ชอบศึกษาประวัติศาสตร์",
+            "มีคนชมว่า “ขวัญคงฮักเจ้าหลาย คือบ่งามปานนี้บ่ได้ดอก”",
+            "เจอคนบ้านจังหวัดเดียวกันเลยนั่งเม้าจนเพลิน",
+            "ได้รับดอกไม้จากพานบายศรีเพื่อความเป็นสิริมงคล",
+            "ถ่ายรูปรวมแล้วอยู่แถวหน้า ตากล้องสาดแฟรชใส่",
+            "มีคนแบ่งน้ำให้",
+            "มีคนเล่าประวัติมหาวิทยาลัยให้ฟัง…",
+            "ผู้เฒ่าอวยพรให้เดินทางปลอดภัย",
+            "ได้รับสายผูกแขนเพิ่มอีกเส้นจากฝ่ายสโมสรนักศึกษาช่อแก้ว",
+            "คนผูกแขนให้ผูกแน่นจนแก้ไม่ออก",
+            "เทียนในมือคุณเอียงจนขี้ผึ้งหยดใส่มือ",
+            "มีคนสะดุดเสื่อแต่ยังรักษาหน้าได้คิดว่าไม่มีใครเห็นจนหันมาสบตากับคุณ",
+            "ขณะหลับตารับพรมีเสียงท้องร้องดังมาก เหลือบมองดูไม่รู้ว่าใครแต่อาจจะเป็นคุณหรือเปล่า",
+            "เด็กในงานเดินมาผูกแขนให้คุณเอง อวยพรขอให้พี่โตไวๆ นะฮาฟฟู่ว",
+            "ด้ายของคุณพันกับคนข้าง ๆ เงยหน้าขึ้นสบตาคิมิโนโต๊ะ",
+            "มีคนเผลอหลับตอนบทสวดยาว คุณแอบได้ยินเขากรน",
+            "มีคนถ่ายรูปแล้วคุณกำลังกะพริบตาทุกรูป",
+            "แมลงเม่าบินชนปากคุณขณะกำลังพูดคุยกับคนข้าง ๆ",
+            "มีคนเข้าใจผิดว่าคุณเป็นเด็กช่อแก้ว",
+            "คนที่คุณแอบมองนั่งข้างคุณ ใจเต้นตึกตักกลัวเขาจับได้",
+            "มีคนผูกแขนให้พร้อมรอยยิ้มอบอุ่น",
+            "สบตากันกับน้องหมาซามอยด์ของช่อแก้วระหว่างบทสวด",
+            "มีคนถามขอช่องทางติดต่อ บอกว่าผมจำพี่ได้ครับที่กินเก่ง ๆ",
+            "ได้รับคำอวยพรเรื่องความรักจากผู้เฒ่า",
+            "มีคนแซวว่าคุณดูเหมาะกันกับคนข้างๆ แต่ข้างๆ คุณไม่มีใครอยู่",
+            "เทียนเล่มหนึ่งดับเองทั้งที่ไม่มีลม",
+            "ได้ยินคนเรียกชื่อทั้งที่ไม่มีใครอยู่",
+            "ผู้เฒ่ามองคุณนิ่งก่อนเอ่ยคำอวยพรแปลก ๆ",
+            "ขณะหลับตารู้สึกเหมือนมีคนแตะไหล่",
+            "มีผีเสื้อสีขาวบินวนรอบพานบายศรี แต่ดูเหมือนจะมีแค่คุณที่เห็น",
+            "เสียงแคนดังขึ้นจากที่ไกลทั้งที่ยังไม่มีคนเป่า",
+            "ด้ายผูกแขนหลุดเองหลังพิธี",
+            "มีคนแก่ในชุดโบราณเดินผ่านแล้วหายไป",
+            "ได้กลิ่นดอกไม้หอมทั้งที่ไม่มีดอกไม้ใกล้ตัว",
+            "รูปถ่ายของคุณติดเงาประหลาด",
+            "คุณมองเห็นนกบินวนเหนือพิธีสามรอบ ก่อนที่มันจะร่อนมาเกาะกิ่งไม้แล้วจ้องคุณ",
+            "ผู้เฒ่าพูดชื่อเล่นคุณโดยไม่เคยรู้จักมาก่อน",
+            "ระหว่างสวดรู้สึกขนลุกวาบ",
+            "ได้ยินเสียงหัวเราะแผ่วเบาจากหลังปรัมพิธี",
+            "สายตาคุณสะดุดกับคนคนหนึ่งที่หายไปหลังพิธี",
+            "คุณฝันถึงพิธีเอิ้นขวัญอีกครั้งในคืนเดียวกัน แต่คนในฝันมีจำนวนมากกว่าในความจริง",
+            "คำอวยพรทำให้นึกถึงคนสำคัญที่จากไป",
+            "ผู้เฒ่าเตือนให้รักษาความสัมพันธ์บางอย่าง",
+            "ผู้เฒ่าจับมือคุณแน่นพร้อมอวยพรให้เข้มแข็ง",
+            "คุณกลับออกจากพิธีพร้อมความรู้สึกว่า ชีวิตกำลังจะเปลี่ยนไปอีกครั้ง",
+            "คุณถูกถามเป็นรอบที่สิบว่ามีแฟนหรือยัง",
+            "คุณได้รับจดหมายที่เขียนถึงคุณโดยไม่ระบุชื่อผู้ส่ง เนื้อความว่า อ่านทำหยัง",
+            "คุณเห็นคนในชุดพิธีนั่งอยู่ใต้ต้นไม้ใหญ่ แต่พอกะพริบตากลับไม่พบใคร"
+        ];
+
         let currentIndex = 0;
         let isTyping = false;
+        let gameEnded = false; // ตัวแปรเช็คว่าจบตอนหรือยัง
         const textBox = document.getElementById('text-box');
         const container = document.getElementById('game-container');
         const lighting = document.getElementById('lighting');
         const candle = document.getElementById('candle-container');
         const fxCanvas = document.getElementById('fx-canvas');
         const bgm = document.getElementById('bgm');
+        const clickHint = document.getElementById('click-hint');
 
         // ฟังก์ชันเริ่มเกม
         document.getElementById('start-btn').addEventListener('click', () => {
@@ -284,6 +399,8 @@
 
         // ควบคุมการเปลี่ยนตอน
         container.addEventListener('click', () => {
+            if (gameEnded) return; // ถ้าเข้าโหมดสุ่มเกมแล้ว ให้คลิกหน้าจอเพื่อเปลี่ยนตอนไม่ได้
+
             if (isTyping) {
                 isTyping = false; // ข้ามการพิมพ์
             } else {
@@ -319,6 +436,11 @@
             function typeChar() {
                 if (!isTyping) {
                     textBox.innerHTML = textToType;
+                    
+                    // ตรวจสอบถ้าเป็นตอนจบ [ จบตอน ] ทันทีที่มีการกดข้าม
+                    if (current.effect === 'end' && !gameEnded) {
+                        triggerEndGame();
+                    }
                     return;
                 }
                 if (charIndex < textArray.length) {
@@ -331,10 +453,62 @@
                     setTimeout(typeChar, 30);
                 } else {
                     isTyping = false;
+                    // ตรวจสอบถ้าพิมพ์จบพอดี และเป็นตอนจบ
+                    if (current.effect === 'end' && !gameEnded) {
+                        triggerEndGame();
+                    }
                 }
             }
             typeChar();
         }
+
+        function triggerEndGame() {
+            gameEnded = true;
+            // หน่วงเวลาให้ผู้อ่านได้เห็นคำว่า [ จบตอน ] ก่อน
+            setTimeout(() => {
+                // เฟดทุกอย่างให้กลายเป็นฉากหลังสีดำสนิท
+                lighting.style.background = '#000000';
+                fxCanvas.style.opacity = '0';
+                candle.style.opacity = '0';
+                clickHint.style.display = 'none';
+                textBox.style.opacity = '0';
+
+                // โชว์มินิเกมสุ่ม
+                setTimeout(() => {
+                    textBox.style.display = 'none';
+                    const randomGameUI = document.getElementById('random-game');
+                    randomGameUI.style.display = 'block';
+                    
+                    // ใช้ setTimeout นิดหน่อยเพื่อให้ display block ทำงานก่อนเปลี่ยน opacity
+                    setTimeout(() => {
+                        randomGameUI.style.opacity = '1';
+                    }, 50);
+                }, 1000);
+                
+            }, 1500); // รอ 1.5 วินาทีก่อนเฟด
+        }
+
+        // --- ระบบสุ่มของปุ่ม ---
+        document.getElementById('random-btn').addEventListener('click', () => {
+            const playerNameInput = document.getElementById('player-name').value.trim();
+            const resultDiv = document.getElementById('random-result');
+
+            if (!playerNameInput) {
+                resultDiv.innerHTML = '<span style="color: #ff6a00;">กรุณากรอกชื่อก่อนน้า ขวัญจะได้รู้ว่ามาหาใคร</span>';
+                return;
+            }
+
+            // สุ่ม Index
+            const randomIndex = Math.floor(Math.random() * randomSituations.length);
+            const chosenSituation = randomSituations[randomIndex];
+
+            // แสดงผลลัพธ์
+            resultDiv.style.opacity = '0';
+            setTimeout(() => {
+                resultDiv.innerHTML = `ในค่ำคืนนี้ <strong>${playerNameInput}</strong>...<br><br><span style="color: #fcebbb;">${chosenSituation}</span>`;
+                resultDiv.style.opacity = '1';
+            }, 300);
+        });
 
         function applyEffects(effect) {
             switch(effect) {
@@ -360,6 +534,9 @@
                     break;
                 case 'warm':
                     lighting.style.background = 'radial-gradient(circle at 50% 80%, rgba(255, 220, 150, 0.3) 0%, rgba(15,15,20,0.85) 80%, rgba(5,5,5,1) 100%)';
+                    break;
+                case 'end':
+                    // จัดการ UI เฟดมืดในฟังก์ชัน triggerEndGame
                     break;
             }
         }
@@ -435,7 +612,7 @@
 
         function initFlowers() {
             if (flowers.length > 0) return;
-            for(let i = 0; i < 25; i++) { // จำนวนดอกไม้ที่ลอยในจอ
+            for(let i = 0; i < 25; i++) { 
                 flowers.push(new Flower());
             }
         }
@@ -511,7 +688,6 @@
                     ctx.quadraticCurveTo(this.points[i-1].x, this.points[i-1].y, xc, yc);
                 }
                 ctx.lineTo(this.points[this.points.length-1].x, this.points[this.points.length-1].y);
-                // ปรับสีสายสิญจน์ให้อ่อนลง (โปร่งแสงมากขึ้น)
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
@@ -520,7 +696,6 @@
 
         function initSaisin() {
             if (ropes.length > 0) return;
-            // ลดจำนวนเส้นลงเหลือฝั่งละ 2 เส้น เพื่อไม่ให้รกจอ
             for(let i=0; i<2; i++) {
                 ropes.push(new Rope(0, Math.random()*height*0.8, width, Math.random()*height*0.8, 40));
                 ropes.push(new Rope(Math.random()*width, 0, Math.random()*width, height, 40));
